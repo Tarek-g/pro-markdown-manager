@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Test Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.4/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .mermaid {
+            background: transparent;
+            padding: 10px;
+            border: none;
+            font-family: monospace;
+            text-align: center;
+            display: block;
+            margin: 10px 0;
+        }
+        
+        pre code.language-mermaid,
+        code.language-mermaid {
+            display: block;
+            background: #f5f5f5;
+            padding: 10px;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            white-space: pre;
+        }
+        
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #eee;
+        }
+        
+        h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mermaid Test Demo</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Pre-formatted code block</h2>
+        <pre><code class="language-mermaid">graph TD
+    A[Christmas] -->|Get money| B(Go shopping)
+    B --> C{Let me think}
+    C -->|One| D[Laptop]
+    C -->|Two| E[iPhone]
+    C -->|Three| F[Car]</code></pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Inline code block</h2>
+        <code class="language-mermaid">graph TD
+    A[Start] --> B[Process]
+    B --> C[End]</code>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Already converted div</h2>
+        <div class="mermaid">graph TD
+    X[Input] --> Y[Process]
+    Y --> Z[Output]</div>
+    </div>
+
+    <script>
+        // Debug function to show what elements we have
+        function debugMermaidElements() {
+            const preElements = document.querySelectorAll("pre");
+            console.log("All pre elements:", preElements.length);
+            
+            const codeElements = document.querySelectorAll("code");
+            console.log("All code elements:", codeElements.length);
+            
+            const mermaidCodeElements = document.querySelectorAll("code.language-mermaid");
+            console.log("Mermaid code elements:", mermaidCodeElements.length);
+            
+            const mermaidDivElements = document.querySelectorAll("div.mermaid");
+            console.log("Mermaid div elements:", mermaidDivElements.length);
+            
+            mermaidCodeElements.forEach(function(el, index) {
+                console.log("Mermaid code element #" + index + ":", el.outerHTML);
+            });
+            
+            mermaidDivElements.forEach(function(el, index) {
+                console.log("Mermaid div element #" + index + ":", el.outerHTML);
+            });
+        }
+        
+        // Fallback function to manually convert code blocks to Mermaid diagrams
+        function convertCodeToMermaid() {
+            // Find code blocks with language-mermaid class
+            const mermaidCodeBlocks = document.querySelectorAll("pre code.language-mermaid, code.language-mermaid");
+            console.log("Found " + mermaidCodeBlocks.length + " Mermaid code blocks to convert");
+            
+            mermaidCodeBlocks.forEach(function(codeBlock) {
+                try {
+                    const content = codeBlock.textContent;
+                    console.log("Converting code block to Mermaid:", content);
+                    
+                    // Skip if already converted
+                    if (codeBlock.closest(".mermaid")) {
+                        console.log("Already converted, skipping");
+                        return;
+                    }
+                    
+                    // Create a new div for the Mermaid diagram
+                    const mermaidDiv = document.createElement("div");
+                    mermaidDiv.className = "mermaid";
+                    mermaidDiv.textContent = content;
+                    
+                    // Replace the pre element with the Mermaid div
+                    const preElement = codeBlock.closest("pre");
+                    if (preElement) {
+                        preElement.parentNode.replaceChild(mermaidDiv, preElement);
+                    } else {
+                        codeBlock.parentNode.replaceChild(mermaidDiv, codeBlock);
+                    }
+                    
+                    console.log("Converted code block to Mermaid div");
+                } catch (e) {
+                    console.error("Error converting code block to Mermaid:", e);
+                }
+            });
+        }
+        
+        // Ensure mermaid is properly initialized
+        function initMermaid() {
+            if (typeof mermaid !== "undefined") {
+                console.log("Initializing Mermaid...");
+                debugMermaidElements();
+                
+                // First, try to convert any remaining code blocks
+                convertCodeToMermaid();
+                
+                // Configure mermaid
+                mermaid.initialize({ 
+                    startOnLoad: false,
+                    theme: "default",
+                    securityLevel: "loose",
+                    flowchart: {
+                        useMaxWidth: true
+                    },
+                    fontFamily: "monospace",
+                    logLevel: 1
+                });
+                
+                // Add error handling
+                mermaid.parseError = function(err, hash) {
+                    console.error("Mermaid syntax error:", err);
+                    console.error("Error hash:", hash);
+                };
+                
+                // Check for mermaid elements
+                const mermaidElements = document.querySelectorAll(".mermaid");
+                console.log("Found " + mermaidElements.length + " Mermaid elements");
+                
+                // Render all mermaid diagrams
+                if (mermaidElements.length > 0) {
+                    try {
+                        console.log("Rendering Mermaid diagrams...");
+                        mermaid.run({
+                            nodes: mermaidElements
+                        }).then(() => {
+                            console.log("Mermaid rendering completed successfully");
+                        }).catch((error) => {
+                            console.error("Mermaid rendering failed:", error);
+                        });
+                    } catch (error) {
+                        console.error("Mermaid init error:", error);
+                    }
+                } else {
+                    console.log("No Mermaid elements found to render");
+                }
+            } else {
+                console.warn("Mermaid not loaded yet, retrying...");
+                // Retry after a short delay
+                setTimeout(initMermaid, 100);
+            }
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", function() {
+                // Small delay to ensure all content is loaded
+                setTimeout(initMermaid, 100);
+            });
+        } else {
+            // DOM is already ready
+            setTimeout(initMermaid, 100);
+        }
+        
+        // Also initialize after a small delay to catch any late-loading content
+        setTimeout(initMermaid, 500);
+        setTimeout(debugMermaidElements, 1000);
+        setTimeout(convertCodeToMermaid, 1500);
+    </script>
+</body>
+</html>

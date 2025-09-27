@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mermaid Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.4/dist/mermaid.min.js"></script>
+    <style>
+        .mermaid {
+            background: transparent;
+            padding: 10px;
+            border: none;
+            font-family: monospace;
+            text-align: center;
+            display: block;
+            margin: 10px 0;
+        }
+        
+        pre code.language-mermaid,
+        code.language-mermaid {
+            display: block;
+            background: #f5f5f5;
+            padding: 10px;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            white-space: pre;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mermaid Test Page</h1>
+    
+    <h2>Test 1: Direct Mermaid div</h2>
+    <div class="mermaid">
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+    </div>
+    
+    <h2>Test 2: Code block that should be converted</h2>
+    <pre><code class="language-mermaid">graph TD
+    D[Test] --> E[Conversion]
+    E --> F[Result]
+    </code></pre>
+    
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: "default",
+            securityLevel: "loose"
+        });
+        
+        // Manual conversion function
+        function convertCodeToMermaid() {
+            const mermaidCodeBlocks = document.querySelectorAll("pre code.language-mermaid, code.language-mermaid");
+            console.log("Found " + mermaidCodeBlocks.length + " Mermaid code blocks to convert");
+            
+            mermaidCodeBlocks.forEach(function(codeBlock) {
+                try {
+                    const content = codeBlock.textContent;
+                    console.log("Converting code block to Mermaid:", content);
+                    
+                    // Skip if already converted
+                    if (codeBlock.closest(".mermaid")) {
+                        console.log("Already converted, skipping");
+                        return;
+                    }
+                    
+                    // Create a new div for the Mermaid diagram
+                    const mermaidDiv = document.createElement("div");
+                    mermaidDiv.className = "mermaid";
+                    mermaidDiv.textContent = content;
+                    
+                    // Replace the pre element with the Mermaid div
+                    const preElement = codeBlock.closest("pre");
+                    if (preElement) {
+                        preElement.parentNode.replaceChild(mermaidDiv, preElement);
+                    } else {
+                        codeBlock.parentNode.replaceChild(mermaidDiv, codeBlock);
+                    }
+                    
+                    console.log("Converted code block to Mermaid div");
+                } catch (e) {
+                    console.error("Error converting code block to Mermaid:", e);
+                }
+            });
+        }
+        
+        // Run conversion after a small delay
+        setTimeout(convertCodeToMermaid, 1000);
+    </script>
+</body>
+</html>
