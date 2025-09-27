@@ -683,15 +683,23 @@ if ( ! class_exists( 'Pro_Markdown_Manager' ) ) {
 			// Log before regex processing
 			error_log('Processing language-mermaid blocks');
 			
-			// Debug the regex patterns
+			// Debug the regex patterns with more flexible patterns
 			$pattern1 = '/<pre[^>]*>\s*<code[^>]*class=[\'\"][^\'\"]*\blanguage-mermaid\b[^\'\"]*[\'\"][^>]*>(?P<content>[\s\S]*?)<\/code>\s*<\/pre>/i';
 			$pattern2 = '/<code[^>]*class=[\'\"][^\'\"]*\blanguage-mermaid\b[^\'\"]*[\'\"][^>]*>(?P<content>[\s\S]*?)<\/code>/i';
 			
+			// Add more flexible patterns to catch edge cases
+			$pattern3 = '/<pre[^>]*class=[\'\"][^\'\"]*\blanguage-mermaid\b[^\'\"]*[\'\"][^>]*>\s*<code[^>]*>(?P<content>[\s\S]*?)<\/code>\s*<\/pre>/i';
+			$pattern4 = '/<pre[^>]*>\s*<code[^>]*>(?P<content>[\s\S]*?)<\/code>\s*<\/pre>/i';
+			
 			$pattern1_matches = preg_match_all($pattern1, $html);
 			$pattern2_matches = preg_match_all($pattern2, $html);
+			$pattern3_matches = preg_match_all($pattern3, $html);
+			$pattern4_matches = preg_match_all($pattern4, $html);
 			
 			error_log('Pattern 1 matches: ' . $pattern1_matches);
 			error_log('Pattern 2 matches: ' . $pattern2_matches);
+			error_log('Pattern 3 matches: ' . $pattern3_matches);
+			error_log('Pattern 4 matches: ' . $pattern4_matches);
 
 			$html_before = $html;
 			$html = preg_replace_callback(
@@ -710,6 +718,38 @@ if ( ! class_exists( 'Pro_Markdown_Manager' ) ) {
 			);
 			
 			error_log('After pattern 2, HTML changed: ' . ($html_before !== $html ? 'yes' : 'no'));
+			
+			// Try the additional patterns if the first two didn1't match
+			if ($pattern1_matches == 0 && $pattern2_matches == 0) {
+				error_log('Trying additional patterns for edge cases');
+				
+				$html_before = $html;
+				$html = preg_replace_callback(
+					$pattern3,
+					array( $this, 'convert_mermaid_code_block' ),
+					$html
+				);
+				
+				error_log('After pattern 3, HTML changed: ' . ($html_before !== $html ? 'yes' : 'no'));
+				
+				// Only try pattern 4 if we're sure it's a Mermaid block
+				if (strpos($html, 'language-mermaid') !== false) {
+					$html_before = $html;
+					$html = preg_replace_callback(
+						$pattern4,
+						function($matches) {
+							// Additional check to ensure this is actually a Mermaid block
+							if (isset($matches[0]) && strpos($matches[0], 'language-mermaid') !== false) {
+								return $this->convert_mermaid_code_block($matches);
+							}
+							return $matches[0];
+						},
+						$html
+					);
+					
+					error_log('After pattern 4, HTML changed: ' . ($html_before !== $html ? 'yes' : 'no'));
+				}
+			}
 			
 			error_log('Final HTML: ' . substr($html, 0, 1000));
 
@@ -1090,14 +1130,79 @@ if ( ! class_exists( 'Pro_Markdown_Manager' ) ) {
 					});
 				}
 				
+				// Enhanced function to handle various HTML structures
+				function enhancedConvertCodeToMermaid() {
+					// Find all pre elements that might contain Mermaid code
+					const preElements = document.querySelectorAll("pre");
+					console.log("Found " + preElements.length + " pre elements to check for Mermaid");
+					
+					preElements.forEach(function(preElement, index) {
+						try {
+							// Check if this pre element has a code child with language-mermaid
+							const codeElement = preElement.querySelector("code.language-mermaid");
+							if (codeElement) {
+								const content = codeElement.textContent;
+								console.log("Converting pre element #" + index + " to Mermaid:", content);
+								
+								// Skip if already converted
+								if (preElement.closest(".mermaid")) {
+									console.log("Already converted, skipping");
+									return;
+								}
+								
+								// Create a new div for the Mermaid diagram
+								const mermaidDiv = document.createElement("div");
+								mermaidDiv.className = "mermaid";
+								mermaidDiv.textContent = content;
+								
+								// Replace the pre element with the Mermaid div
+								preElement.parentNode.replaceChild(mermaidDiv, preElement);
+								
+								console.log("Converted pre element to Mermaid div");
+							}
+						} catch (e) {
+							console.error("Error converting pre element #" + index + " to Mermaid:", e);
+						}
+					});
+					
+					// Also check for standalone code elements with language-mermaid
+					const standaloneCodeElements = document.querySelectorAll("code.language-mermaid:not(pre code)");
+					console.log("Found " + standaloneCodeElements.length + " standalone Mermaid code elements");
+					
+					standaloneCodeElements.forEach(function(codeElement, index) {
+						try {
+							const content = codeElement.textContent;
+							console.log("Converting standalone code element #" + index + " to Mermaid:", content);
+							
+							// Skip if already converted
+							if (codeElement.closest(".mermaid")) {
+								console.log("Already converted, skipping");
+								return;
+							}
+							
+							// Create a new div for the Mermaid diagram
+							const mermaidDiv = document.createElement("div");
+							mermaidDiv.className = "mermaid";
+							mermaidDiv.textContent = content;
+							
+							// Replace the code element with the Mermaid div
+							codeElement.parentNode.replaceChild(mermaidDiv, codeElement);
+							
+							console.log("Converted standalone code element to Mermaid div");
+						} catch (e) {
+							console.error("Error converting standalone code element #" + index + " to Mermaid:", e);
+						}
+					});
+				}
+				
 				// Ensure mermaid is properly initialized
 				function initMermaid() {
 					if (typeof mermaid !== "undefined") {
 						console.log("Initializing Mermaid...");
 						debugMermaidElements();
 						
-						// First, try to convert any remaining code blocks
-						convertCodeToMermaid();
+						// First, try to convert any remaining code blocks with enhanced conversion
+						enhancedConvertCodeToMermaid();
 						
 						// Configure mermaid
 						mermaid.initialize({ 
@@ -1123,7 +1228,7 @@ if ( ! class_exists( 'Pro_Markdown_Manager' ) ) {
 						
 						// Process each element
 						mermaidElements.forEach(function(element, index) {
-							console.log("Processing Mermaid element #" + index + ":", element.textContent);
+							console.log("Processing Mermaid element #" + index + ":", element.textContent.substring(0, 100));
 							
 							// Check for corrupted content
 							if (element.textContent && element.textContent.indexOf("; class Z,AA notes") !== -1) {
@@ -1175,7 +1280,7 @@ if ( ! class_exists( 'Pro_Markdown_Manager' ) ) {
 				// Also initialize after a small delay to catch any late-loading content
 				setTimeout(initMermaid, 500);
 				setTimeout(debugMermaidElements, 1000);
-				setTimeout(convertCodeToMermaid, 1500);
+				setTimeout(enhancedConvertCodeToMermaid, 1500);
 				
 				// Support for dynamically added content
 				if (window.MutationObserver && typeof mermaid !== "undefined") {
@@ -1211,6 +1316,23 @@ if ( ! class_exists( 'Pro_Markdown_Manager' ) ) {
 												return;
 											}
 											shouldReinit = true;
+										}
+										// Check if this is a pre element that might contain Mermaid
+										else if (node.tagName === "PRE") {
+											const codeElement = node.querySelector("code.language-mermaid");
+											if (codeElement) {
+												console.log("New pre element with Mermaid code detected, converting...");
+												try {
+													const content = codeElement.textContent;
+													const mermaidDiv = document.createElement("div");
+													mermaidDiv.className = "mermaid";
+													mermaidDiv.textContent = content;
+													node.parentNode.replaceChild(mermaidDiv, node);
+													shouldReinit = true;
+												} catch (e) {
+													console.error("Error converting new pre element:", e);
+												}
+											}
 										}
 									}
 								});
