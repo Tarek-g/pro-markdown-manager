@@ -1,6 +1,8 @@
 # Pro Markdown Manager
 
-Adds project-friendly controls for Markdown-powered content so you can decide where Markdown is stored and rendered. The plugin vendors Automattic's WordPress.com Markdown parser (WPCom_GHF_Markdown_Parser), delivering Jetpack-equivalent Markdown (footnotes, fenced code, shortcodes, etc.) without requiring Jetpack itself.
+**Pro Markdown Manager** is a WordPress plugin that provides enhanced control over Markdown content in your WordPress site. It allows you to choose where Markdown is stored and rendered, with support for both GitHub Flavoured Markdown and Markdown Extra parsers.
+
+This plugin vendors Automattic's WordPress.com Markdown parser (WPCom_GHF_Markdown_Parser), delivering Jetpack-equivalent Markdown functionality (footnotes, fenced code, shortcodes, etc.) without requiring the Jetpack plugin itself.
 
 ## Features
 - Toggle between GitHub-Flavoured Markdown (Jetpack's `WPCom_Markdown`) and Michel Fortin's Markdown Extra.
