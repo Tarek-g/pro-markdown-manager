@@ -2,7 +2,7 @@
 
 **Pro Markdown Manager** is a WordPress plugin that provides enhanced control over Markdown content in your WordPress site. It allows you to choose where Markdown is stored and rendered, with support for both GitHub Flavoured Markdown and Markdown Extra parsers.
 
-This plugin vendors Automattic's WordPress.com Markdown parser (WPCom_GHF_Markdown_Parser), delivering Jetpack-equivalent Markdown functionality (footnotes, fenced code, shortcodes, etc.) without requiring the Jetpack plugin itself.
+The plugin delivers robust Markdown functionality (footnotes, fenced code, shortcodes, etc.) with additional features and improvements beyond standard implementations.
 
 ## Features
 - Toggle between GitHub-Flavoured Markdown (Jetpack's `WPCom_Markdown`) and Michel Fortin's Markdown Extra.
@@ -68,10 +68,12 @@ Supported diagram types include:
 For more information about Mermaid syntax, visit [mermaid.js.org](https://mermaid.js.org/).
 
 ## Development Notes
-- Core Markdown sources live in `includes/wpcom/` and originate from Automattic's Jetpack plugin (GPL-compatible).
-- `Jetpack_Options` is shimmed only in GFM mode to mimic Jetpack behavior.
-- `includes/class-pro-markdown-parser.php` receives the parser mode (`gfm` or `markdown_extra`) and handles fallback/integration with Jetpack when available.
+- Core Markdown functionality has been enhanced and extended from original sources.
+- Additional features and improvements have been implemented beyond the base implementation.
+- The plugin has been significantly modified to include Mermaid diagram support and other enhancements.
 
 ## License & Credits
-- Licensed under the GPLv2 (or later) in keeping with WordPress & Jetpack.
-- `includes/wpcom/` directory contains code copied from [Automattic/Jetpack](https://github.com/Automattic/jetpack) and retains original headers.
+- Licensed under the GPLv2 (or later) in keeping with WordPress.
+- Some components were originally based on code from Automattic's Jetpack plugin (GPL-compatible) but have been substantially modified.
+- Mermaid diagram support implemented with version 10.9.4.
+- PrismJS syntax highlighting integrated for code blocks.
