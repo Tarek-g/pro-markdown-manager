@@ -2,7 +2,7 @@
 
 **Pro Markdown Manager** is a WordPress plugin that provides enhanced control over Markdown content in your WordPress site. It allows you to choose where Markdown is stored and rendered, with support for both GitHub Flavoured Markdown and Markdown Extra parsers.
 
-The plugin delivers robust Markdown functionality (footnotes, fenced code, shortcodes, etc.) with additional features and improvements beyond standard implementations.
+Key features include built-in ACF (Advanced Custom Fields) integration, Mermaid diagram support, and PrismJS syntax highlighting. The plugin delivers robust Markdown functionality (footnotes, fenced code, shortcodes, etc.) with additional features and improvements beyond standard implementations.
 
 ## Features
 - Toggle between GitHub-Flavoured Markdown (Jetpack's `WPCom_Markdown`) and Michel Fortin's Markdown Extra.
