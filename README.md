@@ -10,7 +10,7 @@ Key features include built-in ACF (Advanced Custom Fields) integration, Mermaid 
 - Optional "Markdown Output" toggle for ACF fields, with the ability to keep post_content raw.
 - Automatic sanitisation with `wp_kses_post()` on render.
 - Plays nicely with Jetpack when it's active (we automatically use its version of `WPCom_Markdown`).
-- Built-in PrismJS syntax highlighting and Mermaid diagram support (version 10.9.4).
+- Built-in PrismJS syntax highlighting and Mermaid diagram support (version 11.12.0).
 
 ## Requirements
 - WordPress 6.0+
@@ -75,5 +75,5 @@ For more information about Mermaid syntax, visit [mermaid.js.org](https://mermai
 ## License & Credits
 - Licensed under the GPLv2 (or later) in keeping with WordPress.
 - Some components were originally based on code from Automattic's Jetpack plugin (GPL-compatible) but have been substantially modified.
-- Mermaid diagram support implemented with version 10.9.4.
+- Mermaid diagram support implemented with version 11.12.0.
 - PrismJS syntax highlighting integrated for code blocks.

@@ -27,25 +27,160 @@ if ( ! defined( 'PRO_MARKDOWN_MANAGER_PARSER_MODE' ) ) {
 if ( 'gfm' === PRO_MARKDOWN_MANAGER_PARSER_MODE ) {
 	if ( ! class_exists( 'Jetpack_Options' ) ) {
 		/**
-		 * Minimal shim that fulfils the subset of Jetpack_Options used by WPCom_Markdown.
-		 *
-		 * Jetpack stores the "use Markdown" toggles as options; we default them to "on"
-		 * so the vendored library behaves the same way it does inside Jetpack.
+		 * Lightweight Jetpack_Options shim for local environments that do not load
+		 * the full Jetpack packages. Implements the methods invoked by the vendored
+		 * Markdown module while remaining compatible with WooCommerce's Jetpack
+		 * connection package.
 		 */
 		class Jetpack_Options {
+			/**
+			 * Defaults applied when Markdown toggles are first accessed.
+			 *
+			 * @var array
+			 */
+			private static $markdown_defaults = array(
+				'wpcom_publish_posts_with_markdown'    => 1,
+				'wpcom_publish_comments_with_markdown' => 1,
+			);
+
+			/**
+			 * Options that should be stored network-wide when multisite is active.
+			 *
+			 * @var array
+			 */
+			private static $network_options = array( 'file_data' );
+
+			/**
+			 * Retrieve a Jetpack option (without `jetpack_` prefix).
+			 *
+			 * @param string $name    Option name without prefix.
+			 * @param mixed  $default Default value when the option is missing.
+			 *
+			 * @return mixed
+			 */
+			public static function get_option( $name, $default = false ) {
+				$option_name = self::normalize_option_name( $name, $is_network );
+
+				$value = $is_network ? get_site_option( $option_name, null ) : get_option( $option_name, null );
+				if ( null === $value ) {
+					return $default;
+				}
+
+				return $value;
+			}
+
+			/**
+			 * Retrieve a raw option without applying the Jetpack prefix.
+			 *
+			 * @param string $name    Raw option name.
+			 * @param mixed  $default Default value.
+			 *
+			 * @return mixed
+			 */
+			public static function get_raw_option( $name, $default = false ) {
+				$value = get_option( $name, null );
+
+				return null === $value ? $default : $value;
+			}
+
+			/**
+			 * Ensure an option exists and is autoloaded, mirroring Jetpack behaviour.
+			 *
+			 * @param string $name    Raw option name.
+			 * @param mixed  $default Default value.
+			 *
+			 * @return mixed
+			 */
 			public static function get_option_and_ensure_autoload( $name, $default = false ) {
 				$value = get_option( $name, null );
 
 				if ( null === $value ) {
-					if ( in_array( $name, array( 'wpcom_publish_posts_with_markdown', 'wpcom_publish_comments_with_markdown' ), true ) ) {
-						$value = 1;
+					if ( array_key_exists( $name, self::$markdown_defaults ) ) {
+						$value = self::$markdown_defaults[ $name ];
 						update_option( $name, $value );
 					} else {
 						$value = $default;
+						if ( false !== $default ) {
+							update_option( $name, $default );
+						}
 					}
 				}
 
 				return $value;
+			}
+
+			/**
+			 * Update a Jetpack option (without `jetpack_` prefix).
+			 *
+			 * @param string $name  Option name.
+			 * @param mixed  $value Value to store.
+			 *
+			 * @return bool
+			 */
+			public static function update_option( $name, $value ) {
+				$option_name = self::normalize_option_name( $name, $is_network );
+
+				return $is_network ? update_site_option( $option_name, $value ) : update_option( $option_name, $value );
+			}
+
+			/**
+			 * Update multiple Jetpack options.
+			 *
+			 * @param array $options Key/value pairs of option names and values.
+			 *
+			 * @return bool True when all updates succeed.
+			 */
+			public static function update_options( $options ) {
+				$success = true;
+
+				foreach ( (array) $options as $name => $value ) {
+					$success = self::update_option( $name, $value ) && $success;
+				}
+
+				return $success;
+			}
+
+			/**
+			 * Delete a Jetpack option (without `jetpack_` prefix).
+			 *
+			 * @param string $name Option name.
+			 *
+			 * @return bool
+			 */
+			public static function delete_option( $name ) {
+				$option_name = self::normalize_option_name( $name, $is_network );
+
+				return $is_network ? delete_site_option( $option_name ) : delete_option( $option_name );
+			}
+
+			/**
+			 * Delete a raw option without prefix handling.
+			 *
+			 * @param string $name Raw option name.
+			 *
+			 * @return void
+			 */
+			public static function delete_raw_option( $name ) {
+				delete_option( $name );
+				if ( is_multisite() ) {
+					delete_site_option( $name );
+				}
+			}
+
+			/**
+			 * Normalize a provided option name.
+			 *
+			 * @param string $name       Option name without prefix.
+			 * @param bool   $is_network Flag set to true when the option should be
+			 *                           stored network-wide in multisite installs.
+			 *
+			 * @return string Prefixed option name.
+			 */
+			private static function normalize_option_name( $name, &$is_network ) {
+				$raw_name   = preg_replace( '/^jetpack_/', '', $name, 1 );
+				$is_network = is_multisite() && in_array( $raw_name, self::$network_options, true );
+
+				return 'jetpack_' . $raw_name;
 			}
 		}
 	}
@@ -1009,9 +1144,9 @@ if ( ! class_exists( 'Pro_Markdown_Manager' ) ) {
 			// Register and enqueue the Mermaid script
 			wp_enqueue_script(
 				'pro-markdown-mermaid',
-				'https://cdn.jsdelivr.net/npm/mermaid@10.9.4/dist/mermaid.min.js',
+				'https://cdn.jsdelivr.net/npm/mermaid@11.12.0/dist/mermaid.min.js',
 				array(),
-				'10.9.4',
+				'11.12.0',
 				true
 			);
 			
